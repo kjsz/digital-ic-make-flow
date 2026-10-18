@@ -1,0 +1,24 @@
+# 复制到工程根目录 config.mk 后使用；仅演示 RTL 仿真，不是完成的物理方案。
+PROJECT_NAME := counter
+DESIGN_NAME := counter
+TOP_MODULE := counter
+TECH := example
+CLOCK_NAME := clk
+CLOCK_PORT := clk
+RTL_LIST := examples/counter/rtl.f
+TB_LIST := examples/counter/tb.f
+INCLUDE_DIRS := examples/counter
+TB_TOP := tb_counter
+DUT_INSTANCE := tb_counter.dut
+TIMESCALE := 1ns/1ps
+GATE_STAGE := dc
+RTL_MODELS :=
+POWER_NET := VDD
+GROUND_NET := VSS
+FLOORPLAN_MODE :=
+CORE_WIDTH :=
+CORE_HEIGHT :=
+CORE_MARGIN :=
+CTS_MAX_TRANSITION := 0.7
+CTS_TARGET_SKEW := 0.1
+CTS_MAX_FANOUT := 15

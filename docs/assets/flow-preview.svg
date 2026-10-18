@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+<title id="title">IC Make Flow 功能效果展示（示意数据）</title>
+<desc id="desc">终端风格展示 summary 分阶段进度、check 缺项提示、ECO 父版本回退与 output 交付打包。内容为示意，不是实际工具结果。</desc>
+<rect width="1200" height="680" rx="16" fill="#0d1117"/>
+<g font-family="Consolas,Menlo,monospace,'Microsoft YaHei'">
+<circle cx="30" cy="29" r="6" fill="#ff5f57"/><circle cx="50" cy="29" r="6" fill="#febc2e"/><circle cx="70" cy="29" r="6" fill="#28c840"/>
+<text x="96" y="35" fill="#c9d1d9" font-size="19">IC Make Flow · 功能预览</text><text x="952" y="35" fill="#8b949e" font-size="16">示意数据 / Demo</text>
+<rect x="22" y="59" width="704" height="351" rx="10" fill="#161b22" stroke="#30363d"/>
+<text x="42" y="91" fill="#79c0ff" font-size="20">$ make summary</text>
+<text x="42" y="126" fill="#c9d1d9" font-size="18">Progress: demo / my_process</text>
+<text x="42" y="159" fill="#8b949e" font-size="17">前端</text>
+<g fill="#3fb950" font-size="18"><text x="54" y="190">[■] sim       OK</text><text x="285" y="190">[■] dc        OK</text><text x="510" y="190">[■] formal OK</text></g>
+<text x="42" y="226" fill="#8b949e" font-size="17">布局布线</text>
+<g fill="#3fb950" font-size="18"><text x="54" y="258">[■] floorplan OK</text><text x="285" y="258">[■] placement OK</text><text x="510" y="258">[■] cts    OK</text><text x="54" y="291">[■] route     OK</text><text x="285" y="291">[■] chipfinish OK</text></g>
+<text x="42" y="333" fill="#c9d1d9" font-size="17">当前最终来源：eco · Git 版本：a1b2c3d4e5f6</text>
+<text x="42" y="378" fill="#d29922" font-size="16">绿色 = 执行完成 + 结果齐全；DRC/LVS 与时序结论另行审核。</text>
+<rect x="746" y="59" width="432" height="351" rx="10" fill="#161b22" stroke="#30363d"/>
+<text x="766" y="91" fill="#79c0ff" font-size="20">$ make check STAGE=innovus</text>
+<text x="766" y="134" fill="#d29922" font-size="18">[innovus] 待配置/缺少输入</text>
+<text x="766" y="174" fill="#c9d1d9" font-size="17">未配置 pin 分配：</text><text x="766" y="204" fill="#c9d1d9" font-size="16">scripts/innovus/floorplan.tcl</text>
+<text x="766" y="247" fill="#c9d1d9" font-size="17">缺少文件或文件为空：</text><text x="766" y="277" fill="#c9d1d9" font-size="16">tech/current/private/lib/tt.lib</text>
+<text x="766" y="333" fill="#8b949e" font-size="16">检查重要配置与文件存在性。</text><text x="766" y="363" fill="#8b949e" font-size="16">不执行 Tcl，不审核电源方案。</text>
+<rect x="22" y="430" width="559" height="226" rx="10" fill="#161b22" stroke="#30363d"/>
+<text x="42" y="465" fill="#79c0ff" font-size="20">$ make eco-history</text>
+<text x="42" y="505" fill="#c9d1d9" font-size="17">a1b2c3d  98ab76c  修复 via 与局部间距</text><text x="42" y="536" fill="#c9d1d9" font-size="17">98ab76c  1234abc  修复天线</text>
+<text x="42" y="579" fill="#79c0ff" font-size="18">$ make eco-rollback</text><text x="42" y="620" fill="#3fb950" font-size="17">回到父版本；后续历史与分支保留。</text>
+<rect x="601" y="430" width="577" height="226" rx="10" fill="#161b22" stroke="#30363d"/>
+<text x="621" y="465" fill="#79c0ff" font-size="20">$ make output</text>
+<text x="621" y="505" fill="#3fb950" font-size="17">已收集：demo.v / demo.sdc / demo.gds …</text><text x="621" y="536" fill="#d29922" font-size="17">跳过：缺失文件（不触发上游重跑）</text>
+<text x="621" y="579" fill="#c9d1d9" font-size="17">output/demo/my_process/&lt;时间-标识&gt;/</text><text x="621" y="620" fill="#c9d1d9" font-size="17">文件夹 + ZIP + manifest.json / SHA-256</text>
+</g></svg>

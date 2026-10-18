@@ -1,0 +1,21 @@
+name: framework-tests
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.9', '3.12']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install Tcl for tool-free policy tests
+        run: sudo apt-get update && sudo apt-get install -y tcl
+      - name: Run framework tests without EDA
+        run: python -m unittest discover -s tests -v

@@ -1,0 +1,24 @@
+{
+  "tt": {
+    "db": ["private/db/tt.db"],
+    "lib": ["private/lib/tt.lib"],
+    "captable": "private/captbl/typ.CapTbl",
+    "nxtgrd": "private/rc/typ.nxtgrd",
+    "mapping": "private/rc/mapping.map",
+    "temperature": 25,
+    "rc_scale": 1.0,
+    "pnr_derate": {},
+    "pt_derate": {}
+  },
+  "bc": {
+    "db": ["private/db/bc.db"],
+    "lib": ["private/lib/bc.lib"],
+    "captable": "private/captbl/best.CapTbl",
+    "nxtgrd": "private/rc/best.nxtgrd",
+    "mapping": "private/rc/mapping.map",
+    "temperature": -40,
+    "rc_scale": 1.0,
+    "pnr_derate": {},
+    "pt_derate": {}
+  }
+}
