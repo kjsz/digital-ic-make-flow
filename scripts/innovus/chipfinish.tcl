@@ -16,6 +16,9 @@ foreach {net pin tie} [list $POWER_NET VDD tiehi $GROUND_NET VSS tielo] {
 verifyConnectivity -type all -error 1000 -warning 50
 
 flow_chipfinish_drc_gate
+# Make internal net names unique when compared without case (for example sel vs SEL).
+# This changes names only; connectivity is preserved. Keep top-level port names unchanged.
+update_names -net -nocase
 # Shared by chipfinish and manual ECO. No placement, routing or filler insertion.
 saveNetlist $NETLIST_OUT
 saveNetlist ${DESIGN_NAME}_lvs.v -includePhysicalcell $LVS_PHYSICAL_CELLS -excludeLeafCell -includePowerGround -flattenBus

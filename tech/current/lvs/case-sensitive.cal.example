@@ -1,7 +1,0 @@
-// 框架自写的 LVS 名称配置示例，不含工艺提取或器件比较规则。
-// 将以下设置合并到用户提供的 design.cal.in；替换已有同名设置，避免重复。
-// rules.cal 仍需包含生成的 sample_design_inc.cal。
-// 保留网名大小写，并在比较网络、实例和端口名称时区分大小写。
-LAYOUT CASE YES
-SOURCE CASE YES
-LVS COMPARE CASE NAMES
