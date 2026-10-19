@@ -16,7 +16,12 @@ def package(flow):
         identifier(tech, 'TECH')
         if flow.ws is not None:
             selection = read_json(flow.ws.base/'active-final.json')
-            if selection.get('git_version'):
+            if selection.get('workspace_format') == 2:
+                source = flow.ws.stage('chipfinish')
+                from workspace_versions import Versions as WorkspaceVersions
+                selection['dirty'] = WorkspaceVersions(flow).dirty()
+                selection['pending_export'] = WorkspaceVersions(flow).pending()
+            elif selection.get('git_version'):
                 from eco_versions import Versions
                 versions = Versions(flow)
                 meta = versions.metadata(selection.get('revision'))

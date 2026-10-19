@@ -43,3 +43,9 @@ export REV
 # 可选 Calibre/Innovus 集成入口，留空跳过。
 CALIBRE_INNOVUS_TCL ?=
 export CALIBRE_INNOVUS_TCL
+
+# 工作区提交备注、放弃未提交修改、查看旧历史。
+MSG ?=
+DISCARD ?= 0
+LEGACY ?= 0
+export MSG DISCARD LEGACY

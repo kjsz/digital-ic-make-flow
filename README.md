@@ -8,7 +8,7 @@
 
 - **看得见的进度**：`make summary` 按细分阶段显示完成、失败、运行中及未完成状态，同时保留时序和几何 DRC 提示。绿色表示执行成功且结果齐全，不代替签核。
 - **简洁的准备检查**：`make check` 检查重要名称、文件列表、库文件、形状和 pin 配置。整个 Innovus 合并检查；不要求人工审核声明，不解析 Tcl 正确性，不限制电源拓扑。
-- **可以回退的手工 ECO**：每版同时保留 finish 前的 editable 与 finish 后的结果。独立 Git 版本库支持备注、历史、父版本回退、指定版本切换和分支保留。
+- **可以回退的手工 ECO**：每版同时保留 finish 前的 editable 与 finish 后的结果。工作区可直接改网表、先验证后提交；Git 支持备注、历史、父版本回退、指定版本恢复和分支保留。
 - **清楚的职责**：Make 管依赖，Python 管输入/状态/归档，Tcl 管工具实现；DC、Formality、PT 和各 Innovus 阶段有明确编辑入口。
 - **报告集中查看**：按阶段、corner、ECO 版本归集，自动解压报告，保留来源信息与原始压缩文件，不触碰 Innovus 数据库内部压缩文件。
 - **交付无需重跑**：`make output` 无依赖，只收集当前最终版本已存在文件，缺项跳过，生成文件夹、ZIP 与含 SHA-256 的清单。
@@ -61,6 +61,7 @@ make chipfinish GUI=0
 - [目录与逐文件用途](docs/structure.md)：配置、脚本、内部模块、测试、示例和生成目录。
 - [全部 Make 命令与参数](docs/commands.md)：包括 STAGE、FORCE_STAGE、GUI、REV、输出与清理语义。
 - [典型完整流程（含 ECO）](docs/workflow.md)：从配置到签核、ECO、回退与交付。
+- [工作区 ECO 与迁移](docs/workspace-eco.md)：chipfinish 工作区、直接改文件、验证后提交。
 - [工艺接入说明](tech/current/README.md)：库路径、corner、规则入口和私有资料管理。
 - [贡献说明](CONTRIBUTING.md)、[变更记录](CHANGELOG.md)、[发布准备记录](docs/release.md)、[发布内容检查记录](docs/publication-audit.md)。
 
@@ -86,9 +87,13 @@ docs/                使用说明
 make drc                    # 准备版图并打开 GUI；在 GUI 内实际运行 DRC
 make lvs                    # 准备源/版图/hcell 并打开 GUI，加载生成的 lvs.runset
 make pt                     # 当前最终版的寄生提取与各 corner STA
-make eco                    # 打开当前版本的 finish 前数据库
+make eco-init               # 初始化工作区版本，旧历史保留
+make eco                    # 打开工作区 finish 前数据库
 # Innovus 中：eco_export {修复说明}，然后退出
-make eco-accept             # 核验导出，自动 Git 提交并切换当前版
+make drc                    # 直接验证未提交的工作区
+make lvs
+make pt
+make eco-accept MSG='修复说明' # 验证后提交，支持直接文件修改
 make eco-history
 make eco-rollback            # 回到当前版的父版本
 make reports

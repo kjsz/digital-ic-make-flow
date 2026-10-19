@@ -99,7 +99,8 @@ def collect(flow, stage, directory=None, revision=None):
                 errors.append(str(exc))
     write_json(destination/'来源.json', dict(stage=stage, source=str(source),
                selected=read_json(flow.ws.base/'active-final.json'), revision=revision,
-               collected=time.time(), errors=errors, result=read_json(source/'result.json')))
+               collected=time.time(), errors=errors, result=read_json(source/'result.json'),
+               workspace=read_json(flow.ws.base/'versions-v2/observed.json')))
     if errors:
         raise ValueError('报告解压失败：'+'; '.join(errors))
 
@@ -107,8 +108,12 @@ def collect(flow, stage, directory=None, revision=None):
 def refresh(flow):
     from state import STAGES
     with flow.require_workspace().lock():
+        from workspace_versions import Versions
+        Versions(flow).observe()
         for stage in STAGES:
-            if stage == 'eco' and flow.final_stage() == 'eco':
+            if stage == 'eco' and read_json(flow.ws.base/'active-final.json').get('workspace_format') == 2:
+                collect(flow, stage, flow.ws.stage('chipfinish'), 'working')
+            elif stage == 'eco' and flow.final_stage() == 'eco':
                 selection = read_json(flow.ws.base/'active-final.json')
                 collect(flow, stage, flow.final_directory(), selection.get('revision'))
             else:

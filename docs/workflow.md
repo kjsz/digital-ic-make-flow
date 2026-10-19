@@ -65,52 +65,47 @@ make reports
 
 查看 DRC/LVS 错误和 setup/hold、未约束路径、寄生标注覆盖等。hcell 是单元对应表，不等于跳过单元验证。不能用虚连接或忽略端口选项掩盖真实断线；模板或私有规则中的这些策略由用户审核。
 
-## 5. 手工 ECO
+## 5. 工作区修复与提交
+
+首次先初始化基线（不运行 EDA，旧历史保留）：
 
 ```bash
+make eco-init
 make eco
 ```
 
-首次自动把 route 的 finish 前数据库和 chipfinish 的最终结果保存成 Git 基线，然后打开可编辑数据库。修复 via、跳线、局部布线等问题；进行连通性与局部几何检查。
-
-Innovus 中：
+当前最终文件固定在 chipfinish，editable 固定在 eco。Innovus 中修复后：
 
 ```tcl
 verifyConnectivity -type all -error 1000 -warning 50
-eco_save
-eco_export {修复某网络缺失 via 与局部间距}
+eco_export {修复 via 与间距}
 exit
 ```
 
-export 先保存 editable，再执行同一 chipfinish，导出并保存 finished，最后恢复 editable。它不重复自动 place/route；需要的手工 ECO 收尾由用户先完成。信号 opens 应修好后再接受；dangling wire 和供电风险仍需实际审核。
-
-```bash
-make eco-accept
-make eco-history
-make summary
-```
-
-accept 核验导出标记、结果完整性、最近导出范围中的错误和时序报告，提交独立 Git 仓库后切换当前版。导出前的拼写/undo 错误不应污染导出检查。接受不证明 DRC/LVS 或时序收敛。
-
-## 6. 检查新版本或回退
+导出直接写 chipfinish，然后先验证，再提交：
 
 ```bash
 make drc
 make lvs
 make pt
+make eco-accept MSG="修复 via 并检查完成"
 ```
 
-结果不理想时：
+若只修改 `_lvs.v` 等工作区文件，可直接编辑、make lvs 检查，再 accept，无需启动 Innovus。提交记录当前内容而不是签核保证；直接改网表不自动回写数据库。再次 export 会重生成对应文本，需要保留的文本修改先提交/另存。
+
+## 6. 继续 ECO 或回退
 
 ```bash
 make eco-history
-make eco-rollback                  # 回到父版本
-# 或 make eco-rollback REV=<版本号>
-# 或 make eco-use-original         # 回到自动实现基线
-make eco                          # 从所选版本 editable 继续
+make eco-rollback
+# 或 make eco-rollback REV=<新版提交编号>
+# 或 make eco-use-original
+make eco
 ```
 
-每个版本保存父关系。假设从 2.0 做出 3.0，默认回退到 2.0；从基线另做 3.0，默认回退到基线。回退不会删除其它分支。再次导出/接受后，下游重新检查。
+默认恢复父提交到原工作目录，旧分支保留。未提交修改默认保护，确认放弃时加 DISCARD=1。旧版本链通过 `make eco-history LEGACY=1` 单独查看，不强行兼容父关系。
+
+交付内容变化定向更新相关缓存，避免验证旧网表；touch 不失效。accept 不改变工作内容，不再次失效已经完成的验证。细节见 [工作区 ECO](workspace-eco.md)。
 
 ## 7. 最终仿真与交付
 
@@ -123,6 +118,6 @@ make output
 
 确认最终 DRC、LVS、RC/PT 与 SDF 仿真都对应最后接受的同一版，并审核工艺规则和约束覆盖。output 仅复制已有交付物，缺失项不会触发重跑；请检查 manifest.json 中的 skipped 项。
 
-保存版本号、交付 ZIP、所需签核报告与环境说明。交付文件夹不是完整 EDA 可恢复环境，PDK、库、SPEF/数据库及许可证不默认包含。需要继续追溯 ECO 时保留完整 work/<设计>/<工艺>/versions/。
+保存版本号、交付 ZIP、所需签核报告与环境说明。交付文件夹不是完整 EDA 可恢复环境，PDK、库、SPEF/数据库及许可证不默认包含。需要继续追溯 ECO 时保留完整 work/<设计>/<工艺>/versions-v2/。
 
 最后需要清理时先执行 `make clean-preview`。不带 STAGE 的 clean 会删除 ECO Git 历史；output 交付包独立保留。

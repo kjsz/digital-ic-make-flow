@@ -13,16 +13,16 @@ import report_store
 from state import no_links, read_json, write_json, files_hash
 
 
-def export_log(directory):
+def export_log(directory, final_directory=None):
     """从最后一次成套导出的 editable 保存起点核验，保留原会话日志。"""
     log = directory/'gui.log'
     lines = log.read_text(encoding='utf-8', errors='replace').splitlines(True)
-    def saves(name):
-        expected = str(directory/name)
+    def saves(name, base=None):
+        expected = str((base or directory)/name)
         return [i for i, line in enumerate(lines)
                 if line.startswith('<CMD> saveDesign ') and
                 line[len('<CMD> saveDesign '):].strip().strip('{}"') == expected]
-    editable, final = saves('editable.enc'), saves('design.enc')
+    editable, final = saves('editable.enc'), saves('design.enc', final_directory)
     if not final or not any(i < final[-1] for i in editable):
         raise ValueError('日志缺少完整导出的检查点保存记录，请重新 eco_export')
     start = max(i for i in editable if i < final[-1])

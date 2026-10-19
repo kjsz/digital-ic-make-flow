@@ -61,7 +61,8 @@ test:
 	@$(PYTHON) -m unittest discover -s tests -v
 
 .PHONY: eco eco-accept eco-use-original
-eco: chipfinish
+# ECO 不自动重跑 PNR，以免覆盖工作区修改。首次需要已有 route/chipfinish。
+eco:
 	@$(PYTHON) flow/flow.py open eco
 eco-accept:
 	@$(PYTHON) flow/flow.py eco-accept
@@ -87,3 +88,7 @@ postverdi_sdf: postsim_sdf
 .PHONY: output
 output:
 	@$(PYTHON) flow/flow.py output
+
+.PHONY: eco-init
+eco-init:
+	@$(PYTHON) flow/flow.py eco-init

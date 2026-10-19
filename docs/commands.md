@@ -73,20 +73,25 @@ route 在最终优化后检查几何 DRC，必要时只修复一次；剩余违�
 
 DRC/LVS 实际检查完成不自动记入 summary 成功格；GUI 打开和归集报告不代表签核通过。RC/PT 和这些输入的选源会跟随已接受 ECO 版本。
 
-## ECO 版本管理
+## ECO 工作区版本管理
 
-| 命令 | 说明 |
+详见 [工作区 ECO 与迁移](workspace-eco.md)。工具当前输入固定是 chipfinish 工作区，不是 Git 历史目录。
+
+| 命令 | 行为 |
 |---|---|
-| `make eco` | Make 前置为 chipfinish；首次保存 route/chipfinish 基线，打开 finish 前 editable；同版本未接受草稿可续编 |
-| `make eco-accept` | 无 Make 前置；核验本次导出/日志/完整性，自动 Git 提交并将其设为当前最终版 |
-| `make eco-history` | 无前置，列出全部保留的 Git 分支/父关系、时间和备注 |
-| `make eco-rollback` | 无前置，回到当前版本的父提交；基线没有父版本 |
-| `make eco-rollback REV=abcdef1234` | 切换到指定提交，至少 7 位十六进制；历史不会因切换而删除 |
-| `make eco-use-original` | 无前置；切回自动 route/chipfinish 建立的基线，尚无基线时需要原始结果完整 |
+| `make eco-init` | 无依赖、不运行 EDA，当前成套结果建立新版基线；旧链保留 |
+| `make eco` | 无 Make 前置，打开 eco/editable；首次需要已有完整结果 |
+| `make eco-accept MSG="备注"` | 无依赖，提交当前工作区文件；支持直接改 `_lvs.v`，无需每次 eco_export |
+| `make eco-history` | 当前新版 Git 历史和 dirty 状态 |
+| `make eco-history LEGACY=1` | 单独查看旧 versions/ 历史 |
+| `make eco-rollback` | 恢复父版本到工作区，保留其它分支 |
+| `make eco-rollback REV=abcdef1234` | 恢复指定新版提交，至少 7 位十六进制 |
+| `make eco-use-original` | 恢复格式 2 基线 |
+| `make eco-rollback DISCARD=1` | 明确放弃未提交修改；默认 dirty 时拒绝覆盖 |
 
-Innovus 命令：`eco_save` 保存 editable 草稿并取消待接受标记；`eco_export {备注}` 保存 editable、完成 chipfinish、导出并恢复 editable。GUI 退出后再 eco-accept。导出后若继续修改，必须重新导出再接受，避免内存修改与交付快照不一致。
+GUI 中 eco_save 只保存草稿；eco_export {备注} 更新 chipfinish 并恢复 editable。退出 GUI 后先 make drc/lvs/pt，再 accept。直接改文件时可跳过 GUI 和 export。
 
-回退后另做 ECO 形成分支，原后续提交仍在。切版会将 merge/hcell/LVS 输入/RC/PT 等标为待更新。已建立基线时强制重跑 DC/PNR 会被拒绝；需完整 clean 后重新实现，或继续 ECO。Git 仓库包含大二进制检查点，磁盘需求会随版本增长。
+提交不是正确性审核，不同步数据库；再次 export 会覆盖对应文本导出。未导出的数据库草稿不能拿旧 final 验证。交付内容变化按依赖更新缓存，touch 不触发；accept 不让刚完成的验证失效。已有基线时不能强制重跑 DC/PNR 覆盖工作区，需继续 ECO 或完整 clean。
 
 ## output 交付
 
@@ -94,7 +99,7 @@ Innovus 命令：`eco_save` 保存 editable 草稿并取消待接受标记；`ec
 make output
 ```
 
-此目标**没有 Make 前置依赖**，不要求阶段 READY/OK，不触发仿真、综合或检查。只读取当前选择版本（无 ECO 时为 chipfinish）中的：
+此目标**没有 Make 前置依赖**，不要求阶段 READY/OK，不触发仿真、综合或检查。只读取当前工作区 chipfinish 中的：
 
 - `<设计名>.v`：最终逻辑网表；`<设计名>_lvs.v`：LVS 物理网表。
 - `<设计名>.sdc`、`.sdf`、`.def`、`.lef`、`.gds`。
@@ -113,6 +118,9 @@ output 不替代 signoff；请在当前版本静止、所有 GUI 保存退出后
 | FORCE | 0/1 | 1 会重跑本次依赖链访问到的所有阶段，代价通常较大；有 ECO 基线时受上述保护限制 |
 | GUI | 默认 1 | cov 自动打开查看器、直接请求的 PNR 阶段完成后打开 GUI；0 抑制这些自动打开 |
 | REV | 空或提交编号 | 只用于 eco-rollback；空回到父版本 |
+| MSG | 空或备注 | eco-accept 提交说明 |
+| DISCARD | 0/1 | 1 允许回退覆盖未提交修改 |
+| LEGACY | 0/1 | eco-history 查看旧历史 |
 | CPU | 8 | DC/Innovus/RC 等运行线程设置；具体工具仍受许可证与自身行为限制 |
 | GATE_STAGE | dc/chipfinish | postsim/postverdi 的网表来源；SDF 仿真固定当前最终版 |
 | HCELL_FILE | 空 | 自定义两列单元映射，路径相对工程根目录；变化后主动更新 hcell/LVS 输入 |

@@ -33,7 +33,8 @@
 │   ├── readiness.py                 check 的重要配置/存在性检查及 Innovus 合并显示
 │   ├── reports.py                   日志错误/警告、Innovus/PT 时序摘要解析和打印
 │   ├── report_store.py              报告归集、历史归档及安全解压
-│   ├── eco_versions.py              独立 Git 仓库、成对快照、接受/历史/回退与缓存恢复
+│   ├── eco_versions.py              旧版历史读取与导出日志辅助
+│   ├── workspace_versions.py        工作区检测、直接文件提交与恢复
 │   ├── deliver.py                   output 当前版交付文件夹、ZIP、清单及 SHA-256
 │   ├── common.tcl                   读取 config 与少量公共 Tcl 函数/路径组
 │   ├── pnr.tcl                      恢复上游、执行阶段脚本、报告并保存检查点
@@ -71,11 +72,13 @@
 ├── tests/
 │   ├── test_calibre_overlay.py      工具数据库链接保留、写入目标链接拒绝
 │   ├── test_refactor.py             语法、报告、DRC 策略、ECO 日志、Git 回退/恢复、check
-│   └── test_output.py               缺项跳过、重复打包和 ZIP 内容
+│   ├── test_output.py               缺项跳过、重复打包和 ZIP 内容
+│   └── test_workspace_versions.py   工作区修改/验证/提交与旧历史保留
 └── docs/
     ├── structure.md                 本目录说明
     ├── commands.md                  Make 目标与参数的完整参考
     ├── workflow.md                  包含 ECO 的典型流程
+    ├── workspace-eco.md             格式 2 工作区与迁移说明
     ├── release.md                   开源前检查与验证状态
     ├── publication-audit.md         当前源码与归档的公开内容检查记录
     └── assets/flow-preview.svg       README 功能效果示意图（非真实设计结果）
@@ -95,11 +98,14 @@
 work/<设计>/<工艺>/
 ├── dc/、formal/、sim/、cov/          各工具运行目录、日志、输出和 result.json
 ├── init/…/chipfinish/                Innovus 细分阶段与 design.enc/.enc.dat
-├── eco/sessions/<会话>/              editable.enc、导出、会话标记；草稿不是已接受版本
-├── versions/
-│   ├── repository.git/              独立 Git 对象库，不是源码 Git 仓库
-│   ├── revisions/<标识>/            editable、final 与脚本快照缓存
-│   └── baseline.json                原始 route/chipfinish 基线提交
+├── eco/                             editable 检查点、GUI 日志、待导出标记
+├── versions-v2/
+│   ├── repository.git/              新历史，工具当前输入仍在 chipfinish
+│   ├── state.json                   当前提交、基线与指纹
+│   ├── observed.json                交付内容变化记录
+│   ├── migration-backup/            初始化前工作区备份
+│   └── restore-backup/              回退前现场
+├── versions/                        旧版历史原样保留
 ├── merge/、hcell/、lvs-input/         配套版图合并、hcell 和 LVS 输入
 ├── drc/、lvs/                        GUI 检查运行目录及数据库
 ├── rc/<corner>/、pt/<corner>/        寄生与 STA

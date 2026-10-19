@@ -16,7 +16,8 @@ import uuid
 import reports
 import readiness
 import report_store
-from eco_versions import Versions
+from eco_versions import Versions as LegacyVersions
+from workspace_versions import Versions
 from state import Workspace, STAGES, identifier, files_hash, read_json, write_json, no_links
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -150,8 +151,10 @@ class Flow:
 
     def final_directory(self):
         selection = read_json(self.require_workspace().base/'active-final.json')
+        if selection.get('workspace_format') == 2:
+            return self.ws.stage('chipfinish')
         if selection.get('git_version'):
-            return Versions(self).directory(selection['revision'])/'final'
+            return LegacyVersions(self).directory(selection['revision'])/'final'
         return self.require_workspace().stage(self.final_stage())
 
     def record(self, stage):
@@ -451,6 +454,7 @@ class Flow:
     def resume_route(self):
         """Check and finish a saved manual repair without routing it again."""
         with self.require_workspace().lock():
+            if Versions(self).ready(): raise ValueError('已有工作区版本管理，请 make eco 修复，不再改写原 route。')
             if self.final_stage() != 'chipfinish':
                 raise ValueError('Use make eco-use-original before resuming the original route branch')
             directory = self.ws.require_checkpoint_tree('route', self.tech)
@@ -528,6 +532,10 @@ class Flow:
         if any(name not in STAGES for name in selected):
             raise ValueError('Unknown FORCE_STAGE: ' + ' '.join(selected))
         with self.require_workspace().lock():
+            versions = Versions(self)
+            versions.before(stage)
+            if versions.ready() and (stage in PNR or stage == 'dc') and (not self.valid(stage) or self.env.get('FORCE') == '1' or stage in selected):
+                raise ValueError('已有工作区版本基线，不能自动覆盖当前实现。修版请 make eco；从头实现需完整 clean。')
             if (stage in PNR or stage == 'dc') and (self.ws.base/'versions/baseline.json').exists() and (self.env.get('FORCE') == '1' or stage in selected):
                 raise ValueError('已有 ECO 版本基线。重新实现请先 make clean；继续修版请 make eco。')
             if self.valid(stage) and self.env.get('FORCE','0')!='1' and stage not in selected:
@@ -540,6 +548,7 @@ class Flow:
             self.ws.remove(stage)
             directory=self.ws.stage(stage); (directory/'reports').mkdir(parents=True)
             record={'stage':stage,'status':'RUNNING','started':time.time()}
+            if versions.ready(): record['workspace_inputs'] = versions.inputs(stage)
             write_json(directory/'result.json',record)
             write_json(self.ws.base/'latest.json',{'stage':stage})
             error=None
@@ -639,7 +648,10 @@ class Flow:
         print('  ■ completed + results present  □ not complete / missing result or prerequisite  ✗ failed  ▶ recorded running  ? unknown')
         print('  当前最终来源：' + self.final_stage())
         selection = read_json(self.ws.base/'active-final.json') if self.ws else {}
-        if selection.get('git_version'): print('  Git 版本：' + selection['revision'][:12])
+        if selection.get('git_version') or selection.get('workspace_format') == 2:
+            print('  Git 基准版本：' + selection['revision'][:12])
+        if self.ws is not None and Versions(self).ready():
+            print('  当前输入：工作区 chipfinish；'+('有修改，未提交' if Versions(self).dirty() else '与提交一致'))
         print('  DRC / LVS: manual GUI checks; check completion is not recorded.')
         print('  GUI aliases: verdi -> sim; postverdi -> postsim; postverdi_sdf -> postsim_sdf; pnr -> chipfinish.')
         print('  ■ means recorded success with complete upstream/results; inputs are not compared.')
@@ -649,6 +661,8 @@ class Flow:
         return states
 
     def summary(self):
+        if self.ws is not None:
+            with self.ws.lock(): Versions(self).observe()
         states = self.progress()
         if self.ws is None:
             print('Design namespace is not configured. Run make check for missing inputs.'); return
@@ -689,6 +703,7 @@ class Flow:
     def open_gui(self, kind, stage=None):
         if not self.env.get('DISPLAY') and sys.platform!='win32': raise ValueError('DISPLAY is missing; GUI needs an X11 desktop/forwarding')
         with self.require_workspace().lock():
+            if kind in ('drc', 'lvs'): Versions(self).before(kind)
             if kind=='eco':
                 self.prepare_eco_gui()
             elif kind=='pnr':
@@ -764,7 +779,7 @@ def put_bytes(path, data):
 def main():
     action=sys.argv[1] if len(sys.argv)>1 else 'help'
     if action=='help':
-        print('make sim/verdi/cov | dc/formal | postsim/postverdi/postsim_sdf/postverdi_sdf\nmake init/floorplan/powerplan/placement/cts/route/chipfinish/pnr\nmake route-resume | eco | eco-accept | eco-use-original | eco-rollback [REV=编号] | eco-history | hcell\nmake drc/lvs (prepare + GUI only) | pt | open [STAGE=route]\nmake check [STAGE=innovus] | summary | reports | output | clean-preview | clean [STAGE=pt] | test\nGUI=0 batch; FORCE=1 rerun visited stages; FORCE_STAGE=route reruns only route. 结果在 work/，报告在 reports/，交付在 output/。')
+        print('make sim/verdi/cov | dc/formal | postsim/postverdi/postsim_sdf/postverdi_sdf\nmake init/floorplan/powerplan/placement/cts/route/chipfinish/pnr\nmake route-resume | eco-init | eco | eco-accept [MSG=备注] | eco-use-original | eco-rollback [REV=编号] | eco-history | hcell\nmake drc/lvs (prepare + GUI only) | pt | open [STAGE=route]\nmake check [STAGE=innovus] | summary | reports | output | clean-preview | clean [STAGE=pt] | test\nGUI=0 batch; FORCE=1 rerun visited stages; FORCE_STAGE=route reruns only route. 结果在 work/，报告在 reports/，交付在 output/。')
         return 0
     flow=Flow()
     if action=='check': return flow.check()
@@ -775,7 +790,7 @@ def main():
             for name in names: flow.ws.remove(name,True)
             for name in names: print(flow.ws.remove(name,action=='clean-preview'))
             if not flow.env.get('STAGE'):
-                extras = [flow.ws.base/'versions', flow.root/'reports'/flow.cfg['DESIGN_NAME']/flow.cfg['TECH']]
+                extras = [flow.ws.base/'versions', flow.ws.base/'versions-v2', flow.root/'reports'/flow.cfg['DESIGN_NAME']/flow.cfg['TECH']]
                 for path in extras:
                     no_links(path)
                     print('清理完整版本历史/报告：'+str(path))
@@ -787,6 +802,8 @@ def main():
     elif action=='output':
         from deliver import package
         package(flow)
+    elif action=='eco-init':
+        with flow.require_workspace().lock(): Versions(flow).initialize()
     elif action=='reports': report_store.refresh(flow)
     elif action=='eco-history': Versions(flow).history()
     elif action=='eco-rollback':
