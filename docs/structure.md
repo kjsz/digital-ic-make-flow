@@ -88,7 +88,7 @@
 
 - `tech/current/private/{db,lib,lef,gds,layermap,verilog,cdl,captbl,rc}/`：目录内 README.md 说明用途，.gitkeep 保证 Git 保留目录；用户自行放入的工艺资料不分发。
 - `tech/current/drc/`：用户提供的 DRC deck 与 `rules.cal.in` 入口，默认 Git 忽略。
-- `tech/current/lvs/`：用户提供的 LVS deck、`rules.cal`、`design.cal.in`，默认 Git 忽略。
+- `tech/current/lvs/`：用户提供的 LVS deck、`rules.cal`、`design.cal.in`，默认 Git 忽略；公开的 `case-sensitive.cal.example` 是名称配置片段，需手动合并到私有源模板。
 
 不要将这些目录换成指向外部目录的符号链接作为 copy_overlay 目标；框架对要写入的路径有链接检查。
 

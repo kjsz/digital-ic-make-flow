@@ -31,6 +31,7 @@ vdCovLog/
 !/tech/current/lvs/**/
 !/tech/current/lvs/**/README.md
 !/tech/current/lvs/**/.gitkeep
+!/tech/current/lvs/case-sensitive.cal.example
 .env
 .env.*
 *.local.mk

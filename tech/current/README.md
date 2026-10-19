@@ -58,3 +58,4 @@ scripts/dc.tcl 中禁用单元和约束，与 scripts/innovus 内的 site、单�
 powerplan 默认两层；单层和三层是整组注释示例。启用另一方案前注释旧组；最高电源层改变时同步检查 sroute、chipfinish 的电源标签与 LEF pin 导出。普通信号默认 M2～M5；CTS 主干 M4/M5 2 倍线宽/间距，leaf M3/M4 默认宽度/2 倍间距，需要实测验证。
 
 可选 Calibre 集成在 config.mk 设置 `CALIBRE_INNOVUS_TCL := /your/local/cal_enc.tcl`，留空时 ECO GUI 跳过该集成。更换工艺应使用不同 TECH 标签并清理/隔离旧结果，不能混用旧 ECO 历史。
+LVS 名称比较建议使用保留大小写并区分名称的配置，参见 [LVS 配置示例与排错](lvs/README.md)。修改源模板后须从实际报告确认生效，工作目录的生成文件会在下次 make lvs 时覆盖。

@@ -1,5 +1,11 @@
 # 变更记录
 
+## LVS 大小写配置说明 — 2026-10-19
+
+- 新增不含工艺资料的名称配置示例：保留大小写并使用 LVS COMPARE CASE NAMES。
+- 明确源模板与生成文件的区别，说明如何通过实际 LVS 报告确认配置生效。
+- 示例需合并到私有 design.cal.in，不自动修改供应商规则。
+
 ## 工作区版本管理 — 2026-10-19
 
 - 新增 eco-init、MSG、DISCARD、LEGACY；旧 versions/ 保留，新链放 versions-v2/。
